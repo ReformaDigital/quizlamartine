@@ -49,16 +49,18 @@ function isActiveCampaignConfigured(): boolean {
 
 /**
  * Sincroniza/Cria um contato no ActiveCampaign
+ * Estrategia: tenta sync primeiro, se der duplicate, atualiza via PUT
  */
 async function syncContact(data: LeadData): Promise<{ id: number } | null> {
   const acUrl = process.env.ACTIVE_CAMPAIGN_URL!
   const acKey = process.env.ACTIVE_CAMPAIGN_API_KEY!
 
-  // AC aceita telefone em varios formatos, mas o mais seguro é enviar
-  // apenas dígitos (sem mascara) ou em formato E.164
   const phoneDigits = data.phone.replace(/\D/g, '')
+  const firstName = data.name.split(' ')[0]
+  const lastName = data.name.split(' ').slice(1).join(' ') || ''
 
-  const response = await fetch(`${acUrl}/api/3/contacts/sync`, {
+  // 1. Tenta sync primeiro (cria ou atualiza)
+  const syncResponse = await fetch(`${acUrl}/api/3/contacts/sync`, {
     method: 'POST',
     headers: {
       'Api-Token': acKey,
@@ -67,22 +69,84 @@ async function syncContact(data: LeadData): Promise<{ id: number } | null> {
     body: JSON.stringify({
       contact: {
         email: data.email,
-        firstName: data.name.split(' ')[0],
-        lastName: data.name.split(' ').slice(1).join(' ') || '',
+        firstName,
+        lastName,
         phone: phoneDigits,
       },
     }),
   })
 
-  if (!response.ok) {
-    const error = await response.text()
-    console.error('ActiveCampaign sync error:', error)
-    console.error('Status:', response.status, '| Email:', data.email, '| Phone:', phoneDigits)
+  // Sucesso - retorna ID
+  if (syncResponse.ok) {
+    const result = await syncResponse.json()
+    return { id: result.contact?.id }
+  }
+
+  // 2. Se der duplicate, tenta atualizar via PUT no contato existente
+  if (syncResponse.status === 422 || syncResponse.status === 400) {
+    const errorText = await syncResponse.text()
+
+    if (errorText.includes('duplicate') || errorText.includes('já existe')) {
+      console.log(`[SYNC] Email ${data.email} ja existe, tentando atualizar via PUT`)
+
+      // Busca o contato existente
+      const searchResponse = await fetch(
+        `${acUrl}/api/3/contacts?email=${encodeURIComponent(data.email)}`,
+        { headers: { 'Api-Token': acKey } }
+      )
+
+      if (!searchResponse.ok) {
+        console.error('[SYNC] Erro ao buscar contato existente')
+        return null
+      }
+
+      const searchResult = await searchResponse.json()
+      const existingContact = searchResult.contacts?.[0]
+
+      if (!existingContact) {
+        console.error('[SYNC] Contato nao encontrado apos duplicate')
+        return null
+      }
+
+      // Atualiza via PUT
+      const updateResponse = await fetch(
+        `${acUrl}/api/3/contacts/${existingContact.id}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Api-Token': acKey,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            contact: {
+              firstName,
+              lastName,
+              phone: phoneDigits,
+              bounced_hard: '0', // Reseta status de bounce
+            },
+          }),
+        }
+      )
+
+      if (updateResponse.ok) {
+        console.log(`[SYNC] Contato ${existingContact.id} atualizado com sucesso`)
+        return { id: parseInt(existingContact.id) }
+      }
+
+      const updateError = await updateResponse.text()
+      console.error(`[SYNC] Erro ao atualizar contato: ${updateError}`)
+      return null
+    }
+
+    // Outro tipo de erro 422
+    console.error(`[SYNC] Erro 422: ${errorText}`)
     return null
   }
 
-  const result = await response.json()
-  return { id: result.contact?.id }
+  // 3. Outros erros
+  const error = await syncResponse.text()
+  console.error(`[SYNC] Erro ${syncResponse.status}: ${error}`)
+  return null
 }
 
 /**
@@ -92,7 +156,7 @@ async function addToList(contactId: number): Promise<boolean> {
   const listId = process.env.ACTIVE_CAMPAIGN_LIST_ID
 
   if (!listId || listId === 'undefined') {
-    console.log('ACTIVE_CAMPAIGN_LIST_ID não configurado - pulando adição à lista')
+    console.log('[LIST] ACTIVE_CAMPAIGN_LIST_ID nao configurado - pulando')
     return true
   }
 
@@ -109,12 +173,19 @@ async function addToList(contactId: number): Promise<boolean> {
       contactList: {
         list: listId,
         contact: contactId,
-        status: '1', // 1 = ativo
+        status: '1',
       },
     }),
   })
 
-  return response.ok
+  // Se ja estiver na lista, considera sucesso
+  if (response.ok || response.status === 422) {
+    return true
+  }
+
+  const errorText = await response.text()
+  console.error(`[LIST] Erro ao adicionar contato ${contactId} na lista: ${errorText}`)
+  return false
 }
 
 /**
@@ -124,7 +195,7 @@ async function applyTag(contactId: number): Promise<boolean> {
   const tagId = process.env.ACTIVE_CAMPAIGN_TAG_ID
 
   if (!tagId || tagId === 'undefined') {
-    console.log('ACTIVE_CAMPAIGN_TAG_ID não configurado - pulando aplicação de tag')
+    console.log('[TAG] ACTIVE_CAMPAIGN_TAG_ID nao configurado - pulando')
     return true
   }
 
@@ -145,7 +216,14 @@ async function applyTag(contactId: number): Promise<boolean> {
     }),
   })
 
-  return response.ok
+  // Se ja tiver a tag, considera sucesso
+  if (response.ok || response.status === 422) {
+    return true
+  }
+
+  const errorText = await response.text()
+  console.error(`[TAG] Erro ao aplicar tag no contato ${contactId}: ${errorText}`)
+  return false
 }
 
 // ==========================================
