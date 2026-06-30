@@ -153,8 +153,8 @@ async function saveCustomFields(
   const acUrl = process.env.ACTIVE_CAMPAIGN_URL!
   const acKey = process.env.ACTIVE_CAMPAIGN_API_KEY!
 
-  const fieldScore = process.env.AC_FIELD_SCORE || 'score'
-  const fieldLevel = process.env.AC_FIELD_LEVEL || 'level'
+  const fieldScore = process.env.AC_FIELD_SCORE || 'quiz_score'
+  const fieldLevel = process.env.AC_FIELD_LEVEL || 'quiz_level'
   const fieldAnswers = process.env.AC_FIELD_ANSWERS || 'answers'
   const fieldPhone = process.env.AC_FIELD_PHONE || 'phone'
 
