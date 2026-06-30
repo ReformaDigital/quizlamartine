@@ -158,6 +158,9 @@ async function saveCustomFields(
   const fieldAnswers = process.env.AC_FIELD_ANSWERS || 'answers'
   const fieldPhone = process.env.AC_FIELD_PHONE || 'phone'
 
+  // Garante que utms sempre exista, mesmo se vier undefined
+  const utms = data.utms || {}
+
   // Campos personalizados a serem salvos
   const customFields = [
     { field: fieldScore, value: String(data.score) },
@@ -165,11 +168,11 @@ async function saveCustomFields(
     { field: fieldPhone, value: data.phone },
     { field: 'date_lead', value: new Date().toISOString() },
     // UTMs
-    { field: `${fieldAnswers}_source`, value: data.utms.utm_source || '' },
-    { field: `${fieldAnswers}_medium`, value: data.utms.utm_medium || '' },
-    { field: `${fieldAnswers}_campaign`, value: data.utms.utm_campaign || '' },
-    { field: `${fieldAnswers}_content`, value: data.utms.utm_content || '' },
-    { field: `${fieldAnswers}_term`, value: data.utms.utm_term || '' },
+    { field: `${fieldAnswers}_source`, value: utms.utm_source || '' },
+    { field: `${fieldAnswers}_medium`, value: utms.utm_medium || '' },
+    { field: `${fieldAnswers}_campaign`, value: utms.utm_campaign || '' },
+    { field: `${fieldAnswers}_content`, value: utms.utm_content || '' },
+    { field: `${fieldAnswers}_term`, value: utms.utm_term || '' },
   ]
 
   // Atualiza cada campo personalizado
