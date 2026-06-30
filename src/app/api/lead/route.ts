@@ -163,6 +163,7 @@ async function saveCustomFields(
     { field: fieldScore, value: String(data.score) },
     { field: fieldLevel, value: data.level },
     { field: fieldPhone, value: data.phone },
+    { field: 'date_lead', value: new Date().toISOString() },
     // UTMs
     { field: `${fieldAnswers}_source`, value: data.utms.utm_source || '' },
     { field: `${fieldAnswers}_medium`, value: data.utms.utm_medium || '' },
