@@ -159,7 +159,10 @@ async function saveSingleField(
   fieldName: string,
   value: string
 ): Promise<boolean> {
-  if (!value) return false
+  if (!value) {
+    console.log(`[FIELD] Pulando ${fieldName} (valor vazio)`)
+    return false
+  }
 
   try {
     // Busca o field ID pelo nome
@@ -170,15 +173,28 @@ async function saveSingleField(
       }
     )
 
-    if (!fieldResponse.ok) return false
-
-    const fieldResult = await fieldResponse.json()
-    const fieldId = fieldResult.fields?.[0]?.id
-
-    if (!fieldId) {
-      console.warn(`Campo customizado nao encontrado: ${fieldName}`)
+    if (!fieldResponse.ok) {
+      console.error(`[FIELD] Erro ao buscar campo ${fieldName}: status ${fieldResponse.status}`)
       return false
     }
+
+    const fieldResult = await fieldResponse.json()
+    const fields = fieldResult.fields || []
+
+    // Procura match exato pelo titulo (case-insensitive)
+    const exactMatch = fields.find(
+      (f: any) => f.title?.toLowerCase() === fieldName.toLowerCase()
+    )
+
+    const matchedField = exactMatch || fields[0]
+    const fieldId = matchedField?.id
+
+    if (!fieldId) {
+      console.error(`[FIELD] Campo '${fieldName}' NAO ENCONTRADO no AC. Campos disponiveis:`, fields.map((f: any) => f.title))
+      return false
+    }
+
+    console.log(`[FIELD] Salvando ${fieldName} (ID ${fieldId}) = "${value}" no contato ${contactId}`)
 
     // Atualiza o campo
     const updateResponse = await fetch(`${acUrl}/api/3/fieldValues`, {
@@ -198,13 +214,14 @@ async function saveSingleField(
 
     if (!updateResponse.ok) {
       const errorText = await updateResponse.text()
-      console.error(`Erro ao salvar campo ${fieldName}:`, errorText)
+      console.error(`[FIELD] Erro ao salvar ${fieldName}: status ${updateResponse.status} - ${errorText}`)
       return false
     }
 
+    console.log(`[FIELD] OK ${fieldName} salvo`)
     return true
   } catch (error) {
-    console.error(`Erro ao salvar campo ${fieldName}:`, error)
+    console.error(`[FIELD] Excecao ao salvar ${fieldName}:`, error)
     return false
   }
 }
