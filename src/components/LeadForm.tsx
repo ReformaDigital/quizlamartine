@@ -123,7 +123,14 @@ export default function LeadGate({
       })
 
       if (!response.ok) {
-        throw new Error('Failed to submit')
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || 'Failed to submit')
+      }
+
+      const result = await response.json()
+
+      if (!result.success) {
+        throw new Error(result.message || 'Failed to submit')
       }
 
       setSubmitStatus('success')
@@ -131,7 +138,7 @@ export default function LeadGate({
     } catch (error) {
       console.error('Erro ao enviar formulário:', error)
       setSubmitStatus('error')
-      setTimeout(onSubmitSuccess, 2000)
+      // NAO redireciona em caso de erro - deixa o usuario tentar de novo
     } finally {
       setIsLoading(false)
     }
