@@ -4,7 +4,6 @@ import { clsx } from 'clsx'
 import { Award, Target, CheckCircle2 } from 'lucide-react'
 import { getResultByScore, formatScore, quizData } from '@/data/quiz'
 import CTAButton from './CTAButton'
-import PitchSection from './PitchSection'
 
 interface ResultScreenProps {
   score: number
@@ -69,7 +68,7 @@ export default function ResultScreen({ score, userName, className }: ResultScree
 
             {/* CTA */}
             <div className="mt-8">
-              <CTAButton href={quizData.cta.url} size="lg" className="w-full sm:w-auto">
+              <CTAButton href={quizData.cta.url} variant="highlight" size="lg" className="w-full sm:w-auto">
                 {quizData.cta.buttonText}
               </CTAButton>
             </div>
@@ -215,9 +214,6 @@ export default function ResultScreen({ score, userName, className }: ResultScree
           </div>
         </div>
       </div>
-
-      {/* Pitch Section */}
-      <PitchSection />
     </div>
   )
 }

@@ -113,11 +113,11 @@ export default function LeadGate({
           score,
           level: level.title,
           utms: {
-            utm_source: utms.utm_source || '',
-            utm_medium: utms.utm_medium || '',
-            utm_campaign: utms.utm_campaign || '',
-            utm_content: utms.utm_content || '',
-            utm_term: utms.utm_term || '',
+            utm_source: utms.utm_source || 'direct',
+            utm_medium: utms.utm_medium || 'none',
+            utm_campaign: utms.utm_campaign || 'direct',
+            utm_content: utms.utm_content || 'none',
+            utm_term: utms.utm_term || 'none',
           },
         }),
       })

@@ -7,7 +7,7 @@ interface CTAButtonProps {
   children: React.ReactNode
   onClick?: () => void
   href?: string
-  variant?: 'primary' | 'secondary' | 'outline'
+  variant?: 'primary' | 'secondary' | 'outline' | 'highlight'
   size?: 'sm' | 'md' | 'lg'
   className?: string
   type?: 'button' | 'submit'
@@ -52,6 +52,14 @@ export default function CTAButton({
       bg-transparent border-2 border-button-secondary-border text-button-secondary-text
       hover:bg-button-secondary-border hover:text-button-text
       rounded-button
+    `,
+    highlight: `
+      bg-[#F1C99A] text-[#1A0A0F]
+      hover:bg-[#FFD9A8]
+      shadow-[0_8px_28px_rgba(241,201,154,0.45),0_0_0_2px_rgba(241,201,154,0.25)]
+      hover:shadow-[0_12px_36px_rgba(241,201,154,0.6),0_0_0_2px_rgba(241,201,154,0.35)]
+      rounded-button
+      border-2 border-[#F1C99A]
     `,
   }
 

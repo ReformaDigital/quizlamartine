@@ -630,7 +630,7 @@ E justamente por conhecer bem a Palavra, você sabe: sempre existe mais profundi
 
   cta: {
     buttonText: 'Quero conhecer a Formação Panorama da Bíblia',
-    url: process.env.NEXT_PUBLIC_CTA_URL || 'https://example.com/formacao-panorama',
+    url: process.env.NEXT_PUBLIC_CTA_URL || 'https://lamartine.reformadigital.org/pdb12-vd-ads',
   },
 
   // ==========================================
