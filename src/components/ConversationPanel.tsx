@@ -57,8 +57,8 @@ export default function ConversationPanel({
           <div className="mb-6 flex items-start gap-3">
             <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#780026]/15 bg-white shadow-[0_10px_24px_rgba(120,0,38,0.25)]">
               <img
-                src="/logopanorama.png"
-                alt="Panorama da Bíblia"
+                src="/lamartinefoto.png"
+                alt="Lamartine Posella"
                 className="h-full w-full object-cover"
               />
             </div>

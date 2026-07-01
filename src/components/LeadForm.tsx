@@ -272,7 +272,6 @@ export default function LeadGate({
                 className="w-full mt-6"
               >
                 {form.submitButtonText}
-                <ChevronRight className="h-4 w-4" />
               </CTAButton>
 
               {/* Privacy Note */}
