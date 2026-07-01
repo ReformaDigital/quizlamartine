@@ -217,6 +217,13 @@ export default function ResultScreen({ score, userName, className }: ResultScree
       </div>
 
       <PitchSection />
+
+      {/* CTA secundario - para quem assistiu o video */}
+      <div className="flex justify-center pt-2">
+        <CTAButton href={quizData.cta.url} variant="highlight" size="lg" className="w-full sm:w-auto">
+          {quizData.cta.buttonText}
+        </CTAButton>
+      </div>
     </div>
   )
 }
